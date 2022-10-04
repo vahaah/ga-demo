@@ -34,20 +34,35 @@ jobs:
           poetry-version: 1.1.13
 
       - name: Detect and tag new version
-        id: version
+        id: check-version
         uses: salsify/action-detect-and-tag-new-version@v2.0.1
         with:
           version-command: |
             poetry version | awk '{ print $2 }'
 
       - name: Publish the release notes
-        if: ${{ github.ref == 'refs/heads/main' }}
         uses: release-drafter/release-drafter@v5.20.0
         with:
-          publish: ${{ steps.version.outputs.tag != '' }}
-          tag: ${{ steps.version.outputs.tag }}
+          publish: ${{ steps.check-version.outputs.tag != '' }}
+          tag: ${{ steps.check-version.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare version
+        id: version
+        run: |
+          if [[ ${{ github.ref }} == refs/heads/main && ${{ steps.check-version.outputs.tag == '' }} ]]; then
+            poetry version patch && \
+            echo "::set-output name=tag::$(poetry version | awk '{ print $2 }')-dev.$(date +'%Y-%m-%dT%H%M')"
+            echo "::set-output name=build::true"
+          elif [[ "${{ github.ref }}" = *"environment"* && ${{ steps.check-version.outputs.tag == '' }} ]]; then
+            echo "::set-output name=tag::v$(poetry version | awk '{ print $2 }')"
+            echo "::set-output name=build::false"
+          elif [[ ${{ steps.check-version.outputs.tag != '' }} ]]; then
+            echo "::set-output name=tag::${{ steps.check-version.outputs.tag }}"
+            echo "::set-output name=build::true"
+          else
+             echo "Missing version tag"
+          fi
       - name: Identify the environment
         id: branch_check
         run: |
@@ -72,4 +87,13 @@ jobs:
     steps:
       - name: Checkout Code Repository
         run: |
-          echo "Running on branch ${{ needs.build.outputs.env_name }}"
+          echo "Running on env ${{ needs.build.outputs.env_name }}"
+          echo "Running on with version ${{ needs.build.outputs.version }}"
+      - uses: mshick/add-pr-comment@v1
+        with:
+          message: |
+            **Deployment**
+            Version: ${{ needs.build.outputs.version }} deployed to ${{ needs.build.outputs.env_name }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token-user-login: "github-actions[bot]"
+          allow-repeats: false
