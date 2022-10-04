@@ -72,10 +72,10 @@ jobs:
         id: branch_check
         run: |
           echo "Running on branch ${{ github.ref }}"
-          if [ "${{ github.ref }}" = "refs/heads/main" ];
+          if [[ ${{ github.ref }} = refs/heads/main ]];
           then
             echo "::set-output name=env_name::dev"
-          elif [ "${{ github.ref }}" = *"environment"* ];
+          elif [ ${{ github.ref }} = *environment* ];
           then
             echo "::set-output name=env_name::${github.ref##*/}"
           else
