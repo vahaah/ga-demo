@@ -56,7 +56,7 @@ jobs:
             version=$(poetry version | awk '{ print $2 }')-pre && \
             version_dated=$version.$(date +'%Y-%m-%dT%H%M')
             echo "::set-output name=tag::$version_dated"
-          elif [[ ${{ steps.check-version.outputs.tag }} != '' ]]; then
+          elif [[ ${{ steps.check-version.outputs.tag != '' }} ]]; then
             echo "::set-output name=tag::${{ steps.check-version.outputs.tag }}"
           fi
       - name: Identify the environment
