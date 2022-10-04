@@ -43,6 +43,7 @@ jobs:
 
       - name: Publish the release notes
         uses: release-drafter/release-drafter@v5.20.0
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
           publish: ${{ steps.check-version.outputs.tag != '' }}
           tag: ${{ steps.check-version.outputs.tag }}
@@ -88,7 +89,7 @@ jobs:
           REF: ${{ github.ref }}
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@v4
-        if: ${{ steps.version.outputs.build }}
+        if: ${{ steps.version.outputs.build == 'true' }}
         with:
           name: vahaah/ga-demo/ga-demo
           username: ${{ github.actor }}
