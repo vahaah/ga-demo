@@ -59,7 +59,7 @@ jobs:
             echo "::set-output name=build::true"
           elif [[ $REF = *environment* && -z $VERSION ]];
           then
-            echo "::set-output name=tag::v$(poetry version | awk '{ print $2 }')"
+            echo "::set-output name=tag::$(poetry version | awk '{ print $2 }')"
             echo "::set-output name=build::false"
           elif [[ -n $VERSION ]];
           then
@@ -69,7 +69,7 @@ jobs:
              echo "Missing version tag"
           fi
         env:
-          VERSION: ${{ steps.check-version.outputs.tag }}
+          VERSION: ${{ steps.check-version.outputs.current-version }}
           REF: ${{ github.ref }}
       - name: Identify the environment
         id: branch_check
