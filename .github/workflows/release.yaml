@@ -34,7 +34,7 @@ jobs:
           poetry-version: 1.1.13
 
       - name: Detect and tag new version
-        id: version
+        id: check-version
         uses: salsify/action-detect-and-tag-new-version@v2.0.1
         with:
           version-command: |
@@ -44,18 +44,21 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: release-drafter/release-drafter@v5.20.0
         with:
-          publish: ${{ steps.version.outputs.tag != '' }}
-          tag: ${{ steps.version.outputs.tag }}
+          publish: ${{ steps.check-version.outputs.tag != '' }}
+          tag: ${{ steps.check-version.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump version for developmental release
-        id: check-version-dev
-        if: "!steps.version.outputs.tag && github.ref == 'refs/heads/main'"
+        id: version
         run: |
-          poetry version patch && \
-          version=$(poetry version | awk '{ print $2 }')-pre && \
-          version_dated=$version.$(date +'%Y-%m-%dT%H%M')
-          echo "::set-output name=version::$version_dated"
+          if [[ ${{ github.ref }} == refs/heads/main && ${{ steps.check-version.outputs.tag }} == '' ]]; then
+            poetry version patch && \
+            version=$(poetry version | awk '{ print $2 }')-pre && \
+            version_dated=$version.$(date +'%Y-%m-%dT%H%M')
+            echo "::set-output name=tag::$version_dated"
+          elif [[ ${{ steps.check-version.outputs.tag }} != '' ]]; then
+            echo "::set-output name=tag::${{ steps.check-version.outputs.tag }}"
+          fi
       - name: Identify the environment
         id: branch_check
         run: |
