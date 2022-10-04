@@ -39,7 +39,7 @@ jobs:
         with:
           version-command: |
             poetry version | awk '{ print $2 }'
-          create-tag: ${{ github.ref == refs/heads/main }}
+          create-tag: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Publish the release notes
         uses: release-drafter/release-drafter@v5.20.0
