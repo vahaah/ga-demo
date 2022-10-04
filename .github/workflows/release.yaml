@@ -52,16 +52,16 @@ jobs:
         run: |
           if [[ ${{ github.ref }} == refs/heads/main && ${{ steps.check-version.outputs.tag == '' }} ]]; then
             poetry version patch && \
-            version=$(poetry version | awk '{ print $2 }')-pre && \
-            version_dated=$version.$(date +'%Y-%m-%dT%H%M')
-            echo "::set-output name=tag::$version_dated"
+            echo "::set-output name=tag::$(poetry version | awk '{ print $2 }')-dev.$(date +'%Y-%m-%dT%H%M')"
             echo "::set-output name=build::true"
           elif [[ "${{ github.ref }}" = *"environment"* && ${{ steps.check-version.outputs.tag == '' }} ]]; then
-            echo "::set-output name=tag::${{ steps.check-version.outputs.tag }}"
+            echo "::set-output name=tag::v$(poetry version | awk '{ print $2 }')
             echo "::set-output name=build::false"
-          elif [[ ${{ steps.check-version.outputs.tag != '' }} ]]; then
+          elif [ ${{ steps.check-version.outputs.tag != '' }} ]; then
             echo "::set-output name=tag::${{ steps.check-version.outputs.tag }}"
             echo "::set-output name=build::true"
+          else
+             echo "Missing version tag"
           fi
       - name: Identify the environment
         id: branch_check
@@ -89,3 +89,11 @@ jobs:
         run: |
           echo "Running on env ${{ needs.build.outputs.env_name }}"
           echo "Running on with version ${{ needs.build.outputs.version }}"
+      - uses: mshick/add-pr-comment@v1
+        with:
+          message: |
+            **Deployment**
+            Version: ${{ needs.build.outputs.version }} deployed to ${{ needs.build.outputs.env_name }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token-user-login: "github-actions[bot]"
+          allow-repeats: false
