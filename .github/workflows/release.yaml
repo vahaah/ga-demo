@@ -1,17 +1,10 @@
 name: Release
 
-# Enable Buildkit and let compose use it to speed up image building
-env:
-  DOCKER_BUILDKIT: 1
-  COMPOSE_DOCKER_CLI_BUILD: 1
-
 on:
   push:
     branches: ["master", "main", "environment/*"]
 
-concurrency:
-  group: ${{ github.head_ref || github.run_id }}
-  cancel-in-progress: false
+concurrency: deployment-${{ github.ref }}
 
 jobs:
   build:
@@ -59,7 +52,7 @@ jobs:
             echo "::set-output name=build::true"
           elif [[ $REF = *environment* && -z $VERSION ]];
           then
-            echo "::set-output name=tag::v$(poetry version | awk '{ print $2 }')"
+            echo "::set-output name=tag::$(poetry version | awk '{ print $2 }')"
             echo "::set-output name=build::false"
           elif [[ -n $VERSION ]];
           then
@@ -69,7 +62,7 @@ jobs:
              echo "Missing version tag"
           fi
         env:
-          VERSION: ${{ steps.check-version.outputs.tag }}
+          VERSION: ${{ steps.check-version.outputs.current-version }}
           REF: ${{ github.ref }}
       - name: Identify the environment
         id: branch_check
