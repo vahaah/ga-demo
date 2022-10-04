@@ -51,29 +51,36 @@ jobs:
       - name: Prepare version
         id: version
         run: |
-          if [[ ${{ github.ref }} == refs/heads/main && ${{ steps.check-version.outputs.tag == '' }} ]]; then
+          if [[ ${{ github.ref }} == refs/heads/main && ${{ steps.check-version.outputs.tag == '' }} ]];
+          then
             poetry version patch && \
             echo "::set-output name=tag::$(poetry version | awk '{ print $2 }')-dev.$(date +'%Y-%m-%dT%H%M')"
             echo "::set-output name=build::true"
-          elif [[ "${{ github.ref }}" = *"environment"* && ${{ steps.check-version.outputs.tag == '' }} ]]; then
+          elif [[ "${{ github.ref }}" = *"environment"* && ${{ steps.check-version.outputs.tag == '' }} ]];
+          then
             echo "::set-output name=tag::v$(poetry version | awk '{ print $2 }')"
             echo "::set-output name=build::false"
-          elif [[ ${{ steps.check-version.outputs.tag != '' }} ]]; then
+          elif [[ ${{ steps.check-version.outputs.tag != '' }} ]];
+          then
             echo "::set-output name=tag::${{ steps.check-version.outputs.tag }}"
             echo "::set-output name=build::true"
           else
              echo "Missing version tag"
+             exit 1;
           fi
       - name: Identify the environment
         id: branch_check
         run: |
           echo "Running on branch ${{ github.ref }}"
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.ref }}" = "refs/heads/main" ];
+          then
             echo "::set-output name=env_name::dev"
-          elif [ "${{ github.ref }}" = *"environment"* ]; then
+          elif [ "${{ github.ref }}" = *"environment"* ];
+          then
             echo "::set-output name=env_name::${github.ref##*/}"
           else
              echo "Missing environment name"
+             exit 1;
           fi
     outputs:
       env_name: ${{ steps.branch_check.outputs.env_name }}
