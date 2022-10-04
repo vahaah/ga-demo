@@ -7,14 +7,15 @@ env:
 
 on:
   push:
-    branches: ["master", "main", "release/*"]
+    branches: ["master", "main", "environment/*"]
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: false
 
 jobs:
-  release:
+  build:
+    name: Build
     runs-on: ubuntu-latest
     environment:
       name: dev
@@ -43,9 +44,35 @@ jobs:
             poetry version | awk '{ print $2 }'
 
       - name: Publish the release notes
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: release-drafter/release-drafter@v5.20.0
         with:
           publish: ${{ steps.version.outputs.tag != '' }}
           tag: ${{ steps.version.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Identify the environment
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "::set-output name=env_name::dev"
+          elif [ "${{ github.ref }}" = *"environment"* ]; then
+            echo "::set-output name=env_name::${github.ref##*/}"
+          else
+             echo "Missing environment name"
+          fi
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
+      version: ${{ steps.version.outputs.tag }}
+  release:
+    needs: [build]
+    if: needs.build.outputs.env_name != ''
+    name: Release
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.build.outputs.env_name }}
+    steps:
+      - name: Checkout Code Repository
+        run: |
+          echo "Running on branch ${{ needs.build.outputs.env_name }}"
