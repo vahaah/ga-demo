@@ -94,7 +94,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           tag_semver: true
-          tags: "latest,${{ steps.check-version.outputs.tag }}"
+          tags: "latest,${{ steps.version.outputs.tag }}"
           registry: docker.pkg.github.com
     outputs:
       env_name: ${{ steps.branch_check.outputs.env_name }}
