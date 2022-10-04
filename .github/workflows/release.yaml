@@ -90,7 +90,7 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@v4
         if: ${{ steps.version.outputs.build }}
         with:
-          name: vahaah/ga-demo
+          name: vahaah/ga-demo/ga-demo
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           tag_semver: true
