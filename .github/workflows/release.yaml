@@ -48,6 +48,14 @@ jobs:
           tag: ${{ steps.version.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump version for developmental release
+        id: check-version-dev
+        if: "!steps.version.outputs.tag && github.ref == 'refs/heads/main'"
+        run: |
+          poetry version patch && \
+          version=$(poetry version | awk '{ print $2 }')-pre && \
+          version_dated=$version.$(date +'%Y-%m-%dT%H%M')
+          echo "::set-output name=version::$version_dated"
       - name: Identify the environment
         id: branch_check
         run: |
@@ -72,4 +80,5 @@ jobs:
     steps:
       - name: Checkout Code Repository
         run: |
-          echo "Running on branch ${{ needs.build.outputs.env_name }}"
+          echo "Running on env ${{ needs.build.outputs.env_name }}"
+          echo "Running on with version ${{ needs.build.outputs.version }}"
