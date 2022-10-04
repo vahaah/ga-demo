@@ -57,7 +57,7 @@ jobs:
           elif [[ "${{ github.ref }}" = *"environment"* && ${{ steps.check-version.outputs.tag == '' }} ]]; then
             echo "::set-output name=tag::v$(poetry version | awk '{ print $2 }')
             echo "::set-output name=build::false"
-          elif [ ${{ steps.check-version.outputs.tag != '' }} ]; then
+          elif [[ ${{ steps.check-version.outputs.tag != '' }} ]]; then
             echo "::set-output name=tag::${{ steps.check-version.outputs.tag }}"
             echo "::set-output name=build::true"
           else
