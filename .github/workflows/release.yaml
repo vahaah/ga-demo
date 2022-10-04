@@ -51,7 +51,7 @@ jobs:
       - name: Prepare version
         id: version
         run: |
-          if [[ ${{ github.ref == refs/heads/main }} && ${{ steps.check-version.outputs.tag == '' }} ]];
+          if [[ ${{ github.ref }} = refs/heads/main && ${{ steps.check-version.outputs.tag == '' }} ]];
           then
             poetry version patch && \
             echo "::set-output name=tag::$(poetry version | awk '{ print $2 }')-dev.$(date +'%Y-%m-%dT%H%M')"
